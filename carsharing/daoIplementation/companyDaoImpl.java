@@ -1,5 +1,6 @@
-package carsharing.dao;
+package carsharing.daoIplementation;
 
+import carsharing.dao.CompanyDao;
 import carsharing.jdbc.H2JDBCConnection;
 import carsharing.model.Company;
 
@@ -8,19 +9,22 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompanyDAO {
+public class companyDaoImpl implements CompanyDao {
 
     private final H2JDBCConnection connection;
 
-    public CompanyDAO(H2JDBCConnection connection) {
+    public companyDaoImpl(H2JDBCConnection connection) {
         this.connection = connection;
     }
 
-    public void createCompanyByName(String companyName) {
+    @Override
+    public void create(Company company) {
         connection.executeUpdate(
-                "insert into company(name) values(?)", companyName);
+                "insert into company(name) values(?)", company.getName());
     }
-    public Company getCompanyById(int id) {
+
+    @Override
+    public Company get(int id) {
         ResultSet rs = connection.executeQuery("select * from COMPANY where id = ?", id);
         Company company = new Company();
         try {
@@ -33,7 +37,14 @@ public class CompanyDAO {
         return company;
     }
 
-    public List<Company> getAllCompanies() {
+    @Override
+    public void update(Company company) {
+        connection.executeUpdate("update company set name = ? where id = ?",
+                company.getName(),
+                company.getId());
+    }
+
+    public List<Company> getAll() {
         List<Company> companyList = new ArrayList<>();
         ResultSet rs = connection.executeQuery("select * from COMPANY");
         try {

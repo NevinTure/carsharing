@@ -1,5 +1,6 @@
-package carsharing.dao;
+package carsharing.daoIplementation;
 
+import carsharing.dao.CustomerDao;
 import carsharing.jdbc.H2JDBCConnection;
 import carsharing.model.Customer;
 
@@ -9,19 +10,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class CustomerDAO {
+public class customerDaoImpl implements CustomerDao {
 
     private final H2JDBCConnection connection;
 
-    public CustomerDAO(H2JDBCConnection connection) {
+    public customerDaoImpl(H2JDBCConnection connection) {
         this.connection = connection;
     }
 
-    public void createCustomerByName(String name) {
-        connection.executeUpdate("insert into CUSTOMER(name) values(?)", name);
+    @Override
+    public void create(Customer customer) {
+        connection.executeUpdate("insert into CUSTOMER(name) values(?)", customer.getName());
     }
 
-    public Customer getCustomerById(int id) {
+    @Override
+    public Customer get(int id) {
         ResultSet rs = connection.executeQuery("SELECT * FROM CUSTOMER WHERE id = ?", id);
         Customer customer = new Customer();
         try {
@@ -34,7 +37,9 @@ public class CustomerDAO {
         }
         return customer;
     }
-    public List<Customer> getAllCustomers() {
+
+    @Override
+    public List<Customer> getAll() {
         ResultSet rs = connection.executeQuery("select * from CUSTOMER");
         List<Customer> customerList = new ArrayList<>();
         try {
@@ -51,24 +56,11 @@ public class CustomerDAO {
         return customerList;
     }
 
-    public void setRentedCarIdByCustomerId(int customerId , int carId) {
-        connection.executeUpdate(
-                "update CUSTOMER set rented_car_id = ? where id = ?",
-                carId,
-                customerId
-        );
-    }
-
-    public boolean isCarAlreadyRentedById(int id) {
-        try {
-            return connection.executeQuery(
-                    "select * from CUSTOMER where rented_car_id = ?",
-                    id).next();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    public void returnACar(int id) {
-        connection.executeUpdate("update CUSTOMER set rented_car_id = null where id = ?", id);
+    @Override
+    public void update(Customer customer) {
+        connection.executeUpdate("update CUSTOMER set name = ?, rented_car_id = ? where id = ?",
+                customer.getName(),
+                customer.getRentedCarId(),
+                customer.getId());
     }
 }

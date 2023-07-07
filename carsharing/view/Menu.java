@@ -1,8 +1,8 @@
 package carsharing.view;
 
-import carsharing.dao.CarDAO;
-import carsharing.dao.CompanyDAO;
-import carsharing.dao.CustomerDAO;
+import carsharing.daoIplementation.carDaoImpl;
+import carsharing.daoIplementation.companyDaoImpl;
+import carsharing.daoIplementation.customerDaoImpl;
 import carsharing.model.Car;
 import carsharing.model.Company;
 import carsharing.model.Customer;
@@ -12,16 +12,16 @@ import java.util.Scanner;
 
 public class Menu {
 
-    private final CompanyDAO companyDAO;
-    private final CarDAO carDAO;
-    private final CustomerDAO customerDAO;
+    private final companyDaoImpl companyDaoImpl;
+    private final carDaoImpl carDaoImpl;
+    private final customerDaoImpl customerDaoImpl;
     private final Scanner scanner;
 
 
-    public Menu(CompanyDAO companyDAO, CarDAO carDAO, CustomerDAO customerDAO) {
-        this.companyDAO = companyDAO;
-        this.carDAO = carDAO;
-        this.customerDAO = customerDAO;
+    public Menu(companyDaoImpl companyDaoImpl, carDaoImpl carDaoImpl, customerDaoImpl customerDaoImpl) {
+        this.companyDaoImpl = companyDaoImpl;
+        this.carDaoImpl = carDaoImpl;
+        this.customerDaoImpl = customerDaoImpl;
         scanner = new Scanner(System.in);
     }
 
@@ -63,12 +63,12 @@ public class Menu {
     private void showCreateCustomer() {
         System.out.println("Enter the customer name:");
         String name = scanner.nextLine();
-        customerDAO.createCustomerByName(name);
+        customerDaoImpl.create(new Customer(name));
         System.out.println("The customer was added!\n");
     }
 
     private void chooseCompanyToOpen() {
-        List<Company> companyList = companyDAO.getAllCompanies();
+        List<Company> companyList = companyDaoImpl.getAll();
         int companyId = showCompanyList(companyList);
         if(companyId == 0) {
             return;
@@ -92,7 +92,7 @@ public class Menu {
     private void showCreateCompany() {
         System.out.println("Enter the company name:");
         String name = scanner.nextLine();
-        companyDAO.createCompanyByName(name);
+        companyDaoImpl.create(new Company(name));
         System.out.println("The company was created!\n");
     }
 
@@ -108,7 +108,7 @@ public class Menu {
             System.out.println();
             switch (companyMenuOption) {
                 case "1" -> showCarList(
-                    carDAO.getCarsByCompanyId(company.getId()),
+                    carDaoImpl.getCarsByCompanyId(company.getId()),
                     "Car list:"
                 );
                 case "2" -> showCreateCar(company.getId());
@@ -130,12 +130,12 @@ public class Menu {
     private void showCreateCar(int companyId) {
         System.out.println("Enter the car name:");
         String carName = scanner.nextLine();
-        carDAO.createCar(carName, companyId);
+        carDaoImpl.create(new Car(carName, companyId));
         System.out.println("The car was added!\n");
     }
 
     private void showCustomerList() {
-        List<Customer> customerList = customerDAO.getAllCustomers();
+        List<Customer> customerList = customerDaoImpl.getAll();
         if(customerList.isEmpty()) {
             System.out.println("The customer list is empty!\n");
             return;
@@ -155,7 +155,7 @@ public class Menu {
         Customer customer;
         String customerMenuOption = "";
         while(!customerMenuOption.equals("0")) {
-            customer = customerDAO.getCustomerById(id);
+            customer = customerDaoImpl.get(id);
             System.out.println("""
                     1. Rent a car
                     2. Return a rented car
@@ -176,12 +176,12 @@ public class Menu {
             System.out.println("You've already rented a car!\n");
             return;
         }
-        List<Company> companyList = companyDAO.getAllCompanies();
+        List<Company> companyList = companyDaoImpl.getAll();
         int companyId = showCompanyList(companyList);
         if(companyId == 0) {
             return;
         }
-        List<Car> carList = carDAO.getFreeCarsByCompanyId(companyId);
+        List<Car> carList = carDaoImpl.getFreeCarsByCompanyId(companyId);
         if(carList.isEmpty()) {
             System.out.printf("No available cars in the '%s' company%n%n",
                     companyList.get(companyId - 1).getName());
@@ -194,7 +194,8 @@ public class Menu {
         if(index == 0) {
             return;
         }
-        customerDAO.setRentedCarIdByCustomerId(customer.getId(), carList.get(index - 1).getId());
+        customer.setRentedCarId(carList.get(index - 1).getId());
+        customerDaoImpl.update(customer);
         System.out.printf("You rented '%s'%n%n", carList.get(index - 1).getName());
     }
 
@@ -203,7 +204,8 @@ public class Menu {
             System.out.println("You didn't rent a car!\n");
             return;
         }
-        customerDAO.returnACar(customer.getRentedCarId());
+        customer.setRentedCarId(null);
+        customerDaoImpl.update(customer);
         System.out.println("You've returned a rented car!\n");
     }
 
@@ -212,8 +214,8 @@ public class Menu {
             System.out.println("You didn't rent a car!\n");
             return;
         }
-        Car car = carDAO.getCarById(customer.getRentedCarId());
-        Company company = companyDAO.getCompanyById(car.getCompanyId());
+        Car car = carDaoImpl.get(customer.getRentedCarId());
+        Company company = companyDaoImpl.get(car.getCompanyId());
         System.out.println("Your rented car:");
         System.out.println(car.getName());
         System.out.println("Company:");

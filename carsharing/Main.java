@@ -1,8 +1,8 @@
 package carsharing;
 
-import carsharing.dao.CarDAO;
-import carsharing.dao.CompanyDAO;
-import carsharing.dao.CustomerDAO;
+import carsharing.daoIplementation.carDaoImpl;
+import carsharing.daoIplementation.companyDaoImpl;
+import carsharing.daoIplementation.customerDaoImpl;
 import carsharing.jdbc.H2JDBCConnection;
 import carsharing.view.Menu;
 
@@ -33,10 +33,10 @@ public class Main {
                 "on delete set null on update cascade);"
         );
 
-        CompanyDAO companyDAO = new CompanyDAO(connection);
-        CarDAO carDAO = new CarDAO(connection);
-        CustomerDAO customerDAO = new CustomerDAO(connection);
-        Menu menu = new Menu(companyDAO, carDAO, customerDAO);
+        companyDaoImpl companyDaoImpl = new companyDaoImpl(connection);
+        carDaoImpl carDaoImpl = new carDaoImpl(connection);
+        customerDaoImpl customerDaoImpl = new customerDaoImpl(connection);
+        Menu menu = new Menu(companyDaoImpl, carDaoImpl, customerDaoImpl);
         menu.startMainMenu();
 
     }
